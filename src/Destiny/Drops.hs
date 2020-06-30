@@ -85,6 +85,7 @@ defaultActions = V.fromList
     raid3Pdf = M.fromList [ (Kinetic, 1/3), (Energy, 1/3), (Chest, 1/3) ]
     raid4Pdf = M.fromList [ (Kinetic, 1/3), (Head, 1/3), (ClassItem, 1/3) ]
 
+
 mkInitialActions :: Actions -> VU.Vector Word8
 mkInitialActions = VU.convert . fmap (fromIntegral.length.names) 
 
@@ -126,25 +127,6 @@ selectAction se | VU.sum actionArity == 0 = return Nothing
     
       let value = sum outcomes
       return (idx, value)
-
-selectActionSimple :: StateEntry -> Maybe (Int, Double)
-selectActionSimple se | VU.sum actionArity == 0 = Nothing
-                      | otherwise = Just $ VU.maximumBy (compare `on` snd) $ VU.imap onAction actionArity
-  where
-    actionArity = availableActions se
-    msd = meanSlotDeviation se
-    onAction idx 0 = (idx, 0)
-    onAction idx arity = (idx, sum $ map onSlot (M.assocs $ pdf action))
-      where
-        action = defaultActions V.! idx
-        gain = fromIntegral $ powerGain action
-        
-        onSlot (slot, prob) = prob * reward
-          where
-            slotIdx = fromEnum slot
-            oldMean = msd VU.! slotIdx
-            newGain = max oldMean gain
-            reward = fromIntegral (newGain - oldMean)
 
 updateStateEntry :: StateEntry -> Slot -> Int -> (StateEntry, Double)
 updateStateEntry se slot idx = (StateEntry { availableActions = newActionState, meanSlotDeviation = newMsd }, reward)

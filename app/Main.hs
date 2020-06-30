@@ -91,9 +91,7 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
         Just (actIdx,gain) -> do 
           let recAction = defaultActions V.! actIdx
           outputStrLn $ printf "Do one of %s for an expected total gain of %.2f." (show $ names recAction) gain
-          case selectActionSimple se of
-            Nothing -> outputStrLn "Single-stage gain terminated"
-            Just (ssIdx, ssGain) -> outputStrLn $ printf "Comparison: single-stage no-lookahead says %s with step gain %.2f" (show $ names $ defaultActions V.! ssIdx) ssGain
+          
           outputStrLn "What slot did you get a drop in?"
           slot <- queryUpdate (M.keys $ pdf recAction)
           let (newSe, reward) = updateStateEntry se slot actIdx
