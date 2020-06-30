@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9af483c018eddab115453e9860c62f5bcd0fc790e9e4c739bdbdc92f24504440
+-- hash: d9481915c27785b985c0a3281089f401c2bf987cb0c6ea0556ac8b04074736c1
 
 name:           destiny-gear-optimizer
 version:        0.1.0.0
@@ -33,8 +33,26 @@ library
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       src
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  ghc-options: -O2 -funbox-strict-fields
   build-depends:
       base >=4.7 && <5
+    , bytestring
+    , cereal
+    , cereal-vector
+    , containers
+    , deepseq
+    , directory
+    , generic-lens
+    , hashable
+    , haskeline
+    , lens
+    , monad-parallel
+    , mtl
+    , stm
+    , ttrie
+    , vector
+    , vector-instances
   default-language: Haskell2010
 
 executable destiny-gear-optimizer-exe
@@ -43,10 +61,27 @@ executable destiny-gear-optimizer-exe
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  ghc-options: -O2 -funbox-strict-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
+    , cereal
+    , cereal-vector
+    , containers
+    , deepseq
     , destiny-gear-optimizer
+    , directory
+    , generic-lens
+    , hashable
+    , haskeline
+    , lens
+    , monad-parallel
+    , mtl
+    , stm
+    , ttrie
+    , vector
+    , vector-instances
   default-language: Haskell2010
 
 test-suite destiny-gear-optimizer-test
@@ -56,8 +91,25 @@ test-suite destiny-gear-optimizer-test
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  ghc-options: -O2 -funbox-strict-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
+    , cereal
+    , cereal-vector
+    , containers
+    , deepseq
     , destiny-gear-optimizer
+    , directory
+    , generic-lens
+    , hashable
+    , haskeline
+    , lens
+    , monad-parallel
+    , mtl
+    , stm
+    , ttrie
+    , vector
+    , vector-instances
   default-language: Haskell2010

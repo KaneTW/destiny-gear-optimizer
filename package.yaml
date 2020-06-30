@@ -21,6 +21,36 @@ description:         Please see the README on GitHub at <https://github.com/Kane
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
+- mtl
+- lens
+- generic-lens
+- vector
+- stm
+- monad-parallel
+- ttrie
+- hashable
+- vector-instances
+- cereal
+- bytestring
+- cereal-vector
+- haskeline
+- directory
+- deepseq
+
+default-extensions:
+- AllowAmbiguousTypes
+- TypeInType
+- GADTs
+- FlexibleContexts
+- TypeApplications
+- UndecidableInstances
+- GeneralizedNewtypeDeriving
+- NoMonoLocalBinds
+
+ghc-options:
+- -O2
+- -funbox-strict-fields
 
 library:
   source-dirs: src
