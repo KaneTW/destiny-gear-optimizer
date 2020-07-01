@@ -67,13 +67,3 @@ executables:
     dependencies:
     - destiny-gear-optimizer
 
-tests:
-  destiny-gear-optimizer-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - destiny-gear-optimizer
