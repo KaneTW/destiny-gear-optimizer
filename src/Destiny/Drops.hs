@@ -9,10 +9,11 @@ import Control.Monad.State.Strict
 import Data.Function
 import Data.Generics.Product
 import Data.Word
+import qualified Data.List as L
 import qualified Data.Map.Strict as M
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Primitive as VP
 import qualified Data.Foldable as F
 import Debug.Trace
 
@@ -87,24 +88,24 @@ defaultActions = V.fromList
     raid4Pdf = M.fromList [ (Kinetic, 1/3), (Head, 1/3), (ClassItem, 1/3) ]
 
 
-mkInitialActions :: Actions -> VU.Vector Word8
-mkInitialActions = VU.convert . fmap (fromIntegral.length.names) 
+mkInitialActions :: Actions -> VP.Vector Word8
+mkInitialActions = VP.convert . fmap (fromIntegral.length.names) 
 
 mkState :: SlotTable -> Actions -> StateEntry
 mkState slots actions = StateEntry 
-  { meanSlotDeviation = VU.fromList $ map (\n -> fromIntegral (n - currentLevel slots)) $ M.elems slots
+  { meanSlotDeviation = VP.fromList $ map (\n -> fromIntegral (n - currentLevel slots)) $ M.elems slots
   , availableActions = mkInitialActions actions
   }
 
-selectAction :: Monad m => StateEntry -> StateT MDPState m (Maybe (Int, Double))
-selectAction se | VU.sum actionArity == 0 = return Nothing
+selectAction :: Monad m => StateEntry -> StateT MDPState m (Maybe StateTransition)
+selectAction se | VP.sum actionArity == 0 = return Nothing
                 | otherwise = do
   oldEntry <- HM.lookup se <$> get
 
   case oldEntry of
     Just x -> return (Just x)
     _ -> do
-      choice <- VU.maximumBy (compare `on` snd) <$> VU.imapM onAction actionArity
+      choice <- V.maximumBy (compare `on` transitionScore) <$> V.imapM onAction (VP.convert actionArity)
       modify' (HM.insert se choice)
       return (Just choice)
 
@@ -112,7 +113,7 @@ selectAction se | VU.sum actionArity == 0 = return Nothing
     actionArity = availableActions se
     msd = meanSlotDeviation se
 
-    onAction idx 0 = return (idx, 0)
+    onAction idx 0 = return $ StateTransition (fromIntegral idx) 0
     onAction idx arity = do
       let action = defaultActions V.! idx
       let gain = fromIntegral $ powerGain action
@@ -122,12 +123,13 @@ selectAction se | VU.sum actionArity == 0 = return Nothing
 
         let (newSe, reward) = updateStateEntry se slot idx
 
-        (_, restReward) <- maybe (0, 0) id <$> selectAction newSe
+        st <- maybe (StateTransition 0 0) id <$> selectAction newSe
 
+        let restReward = transitionScore st
         return (prob * (reward + restReward))
     
       let value = sum outcomes
-      return (idx, value)
+      return $ StateTransition (fromIntegral idx) value
 
 updateStateEntry :: StateEntry -> Slot -> Int -> (StateEntry, Double)
 updateStateEntry se slot idx = (StateEntry { availableActions = newActionState, meanSlotDeviation = newMsd }, reward)
@@ -136,19 +138,19 @@ updateStateEntry se slot idx = (StateEntry { availableActions = newActionState, 
     gain = fromIntegral $ powerGain action
 
     actionArity = availableActions se
-    arity = actionArity VU.! idx
-    newActionState = actionArity `VU.unsafeUpd` [(idx, arity-1)]
+    arity = actionArity VP.! idx
+    newActionState = actionArity `VP.unsafeUpd` [(idx, arity-1)]
     
     slotIdx = fromEnum slot
     msd = meanSlotDeviation se
-    oldSlot = msd VU.! slotIdx
+    oldSlot = msd VP.! slotIdx
     newGain = max oldSlot gain
 
     reward = fromIntegral (newGain - oldSlot)
 
-    newMsd' = msd `VU.unsafeUpd` [ (slotIdx, max (msd VU.! slotIdx) gain) ]
-    mean = (VU.sum newMsd') `div` 8
-    newMsd = VU.map (\n -> fromIntegral $ max (0 :: Int) (fromIntegral n - fromIntegral mean)) newMsd'
+    newMsd' = msd `VP.unsafeUpd` [ (slotIdx, max (msd VP.! slotIdx) gain) ]
+    mean = (VP.sum newMsd') `div` 8
+    newMsd = VP.map (\n -> fromIntegral $ max (0 :: Int) (fromIntegral n - fromIntegral mean)) newMsd'
 
         
 

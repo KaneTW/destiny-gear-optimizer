@@ -6,6 +6,8 @@ module Destiny.Types where
 
 import Control.Monad.Writer.Class
 import Control.Monad.State.Class
+import Data.Bits
+import Data.Primitive.ByteArray
 import Data.Hashable
 import Data.Map.Strict (Map)
 import Data.Word
@@ -13,7 +15,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.HashMap.Strict as HM
 import qualified Data.IntMap as IM
 import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Primitive as VP
 import GHC.Generics
 import Data.Vector.Instances
 import Data.Store
@@ -57,12 +59,20 @@ data Activity = Activity
 type Actions = V.Vector Activity
 
 data StateEntry = StateEntry
-  { meanSlotDeviation :: !(VU.Vector Word8) -- ^ bounded to sum < 8
-  , availableActions :: !(VU.Vector Word8) -- ^ index corresponds to index in Actions vector, value is arity (how often can you take that action)
+  { meanSlotDeviation :: {-# UNPACK #-} !(VP.Vector Word8) -- ^ bounded to sum < 8
+  , availableActions :: {-# UNPACK #-} !(VP.Vector Word8) -- ^ index corresponds to index in Actions vector, value is arity (how often can you take that action)
   } deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Store, NFData)
 
-instance Hashable StateEntry
-instance Store StateEntry
-instance NFData StateEntry
+instance Hashable StateEntry where
+  hashWithSalt salt (StateEntry msd aa) = hashVector msd (hashVector aa salt)
+    where
+      hashVector (VP.Vector off len (ByteArray ba)) = hashByteArrayWithSalt ba off len
 
-type MDPState = HM.HashMap StateEntry (Int, Double)
+data StateTransition = StateTransition
+  { transitionAction :: {-# UNPACK #-} !Word8
+  , transitionScore :: {-# UNPACK #-} !Double
+  } deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Hashable, Store, NFData)
+
+type MDPState = HM.HashMap StateEntry StateTransition

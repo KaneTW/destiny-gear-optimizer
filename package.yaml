@@ -37,6 +37,7 @@ dependencies:
 - deepseq
 - unordered-containers
 - store
+- primitive
 
 
 default-extensions:

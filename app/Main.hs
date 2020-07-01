@@ -10,7 +10,7 @@ import qualified Data.ByteString as BL
 import qualified Data.Map.Strict as M
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Primitive as VP
 
 import Data.Store
 
@@ -40,7 +40,7 @@ cands n k = do
 generateMain :: IO ()
 generateMain = do
   let acts = mkInitialActions defaultActions
-  s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VU.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) mempty
+  s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VP.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) mempty
   BL.writeFile "states.out" $ encode $ HM.toList s
 
 main :: IO ()
@@ -72,7 +72,7 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
       return states
 
     processInput :: FilePath -> InputT IO MDPState
-    processInput fn = liftIO $  BL.readFile fn >>= decodeIO
+    processInput fn = liftIO $ BL.readFile fn >>= decodeIO
 
     loopOuter :: MDPState -> InputT IO ()
     loopOuter states = do
@@ -90,7 +90,9 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
       (result, s) <- runStateT (selectAction se) states
       case result of
         Nothing -> outputStrLn "Nothing can be improved anymore."
-        Just (actIdx,gain) -> do 
+        Just (StateTransition actIdx' gain) -> do 
+          let actIdx = fromIntegral actIdx'
+          
           let recAction = defaultActions V.! actIdx
           outputStrLn $ printf "Do one of %s for an expected total gain of %.2f." (show $ names recAction) gain
           

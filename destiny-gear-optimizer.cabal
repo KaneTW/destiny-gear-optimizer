@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 123a494f400435ee1cb34c6cbc0e1654db6ca99ddaf463ff51a7fc439a0047a5
+-- hash: 2f5c25463ba9944e2e8ff12ecc26d4a56307b2ce62a07bf7873d3092b8cee9b5
 
 name:           destiny-gear-optimizer
 version:        0.1.0.0
@@ -47,6 +47,7 @@ library
     , lens
     , monad-parallel
     , mtl
+    , primitive
     , stm
     , store
     , ttrie
@@ -76,6 +77,7 @@ executable destiny-gear-optimizer-exe
     , lens
     , monad-parallel
     , mtl
+    , primitive
     , stm
     , store
     , ttrie
@@ -106,6 +108,7 @@ test-suite destiny-gear-optimizer-test
     , lens
     , monad-parallel
     , mtl
+    , primitive
     , stm
     , store
     , ttrie
