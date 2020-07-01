@@ -22,7 +22,5 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 stack.yaml.lock
-states.out
-states.out.bz2
 *.pdf
 *.ps

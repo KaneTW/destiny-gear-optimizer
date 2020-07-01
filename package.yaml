@@ -38,7 +38,7 @@ dependencies:
 - unordered-containers
 - store
 - primitive
-
+- lzma
 
 default-extensions:
 - AllowAmbiguousTypes

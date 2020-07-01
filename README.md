@@ -3,9 +3,8 @@
 1. Install Stack -- https://haskellstack.org
 2. Clone or download this project
 3. `stack build`
-4. Download and unzip states.out: https://kane.cx/~kane/states.out.bz2
-5. `stack exec destiny-gear-optimizer-exe`
-6. Follow instructions.
+4. `stack exec destiny-gear-optimizer-exe`
+5. Follow instructions.
 
 ## Theory
 This models Destiny loot as a stochastic dynamic programming problem.
