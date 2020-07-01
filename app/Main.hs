@@ -41,7 +41,7 @@ generateMain :: IO ()
 generateMain = do
   let acts = mkInitialActions defaultActions
   s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VP.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) mempty
-  BL.writeFile "states.out" $ encode $ HM.toList s
+  BL.writeFile "states.out" $ encode s
 
 main :: IO ()
 main = runInputT defaultSettings (prepare >>= loopOuter)

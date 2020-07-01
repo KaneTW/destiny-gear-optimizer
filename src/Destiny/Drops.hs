@@ -100,13 +100,13 @@ mkState slots actions = StateEntry
 selectAction :: Monad m => StateEntry -> StateT MDPState m (Maybe StateTransition)
 selectAction se | VP.sum actionArity == 0 = return Nothing
                 | otherwise = do
-  oldEntry <- HM.lookup se <$> get
+  oldEntry <- M.lookup se <$> get
 
   case oldEntry of
     Just x -> return (Just x)
     _ -> do
       choice <- V.maximumBy (compare `on` transitionScore) <$> V.imapM onAction (VP.convert actionArity)
-      modify' (HM.insert se choice)
+      modify' (M.insert se choice)
       return (Just choice)
 
   where

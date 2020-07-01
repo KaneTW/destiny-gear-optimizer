@@ -75,4 +75,4 @@ data StateTransition = StateTransition
   } deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Hashable, Store, NFData)
 
-type MDPState = HM.HashMap StateEntry StateTransition
+type MDPState = M.Map StateEntry StateTransition
