@@ -1,7 +1,7 @@
 # Destiny Gear Optimizer
 ## Install from source
 1. Install Stack -- https://haskellstack.org
-2. Clone or download this project
+2. Clone this repository: `git clone --recursive https://github.com/KaneTW/destiny-gear-optimizer` --- the --recursive is important!
 3. `stack build`
 4. `stack exec destiny-gear-optimizer-exe`
 5. Follow instructions.
