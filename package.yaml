@@ -31,12 +31,13 @@ dependencies:
 - ttrie
 - hashable
 - vector-instances
-- cereal
 - bytestring
-- cereal-vector
 - haskeline
 - directory
 - deepseq
+- unordered-containers
+- store
+
 
 default-extensions:
 - AllowAmbiguousTypes
@@ -47,6 +48,7 @@ default-extensions:
 - UndecidableInstances
 - GeneralizedNewtypeDeriving
 - NoMonoLocalBinds
+- ScopedTypeVariables
 
 ghc-options:
 - -O2

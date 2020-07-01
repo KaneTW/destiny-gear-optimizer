@@ -10,13 +10,13 @@ import Data.Hashable
 import Data.Map.Strict (Map)
 import Data.Word
 import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as HM
 import qualified Data.IntMap as IM
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import GHC.Generics
 import Data.Vector.Instances
-import Data.Serialize
-import Data.Vector.Serialize
+import Data.Store
 import Control.DeepSeq
 
 
@@ -62,7 +62,7 @@ data StateEntry = StateEntry
   } deriving stock (Show, Eq, Ord, Generic)
 
 instance Hashable StateEntry
-instance Serialize StateEntry
+instance Store StateEntry
 instance NFData StateEntry
 
-type MDPState = M.Map StateEntry (Int, Double)
+type MDPState = HM.HashMap StateEntry (Int, Double)

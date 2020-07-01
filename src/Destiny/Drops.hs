@@ -10,6 +10,7 @@ import Data.Function
 import Data.Generics.Product
 import Data.Word
 import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Foldable as F
@@ -98,13 +99,13 @@ mkState slots actions = StateEntry
 selectAction :: Monad m => StateEntry -> StateT MDPState m (Maybe (Int, Double))
 selectAction se | VU.sum actionArity == 0 = return Nothing
                 | otherwise = do
-  oldEntry <- M.lookup se <$> get
+  oldEntry <- HM.lookup se <$> get
 
   case oldEntry of
     Just x -> return (Just x)
     _ -> do
       choice <- VU.maximumBy (compare `on` snd) <$> VU.imapM onAction actionArity
-      modify (M.insert se choice)
+      modify' (HM.insert se choice)
       return (Just choice)
 
   where

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d9481915c27785b985c0a3281089f401c2bf987cb0c6ea0556ac8b04074736c1
+-- hash: 123a494f400435ee1cb34c6cbc0e1654db6ca99ddaf463ff51a7fc439a0047a5
 
 name:           destiny-gear-optimizer
 version:        0.1.0.0
@@ -33,13 +33,11 @@ library
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       src
-  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds ScopedTypeVariables
   ghc-options: -O2 -funbox-strict-fields
   build-depends:
       base >=4.7 && <5
     , bytestring
-    , cereal
-    , cereal-vector
     , containers
     , deepseq
     , directory
@@ -50,7 +48,9 @@ library
     , monad-parallel
     , mtl
     , stm
+    , store
     , ttrie
+    , unordered-containers
     , vector
     , vector-instances
   default-language: Haskell2010
@@ -61,13 +61,11 @@ executable destiny-gear-optimizer-exe
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       app
-  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds ScopedTypeVariables
   ghc-options: -O2 -funbox-strict-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , bytestring
-    , cereal
-    , cereal-vector
     , containers
     , deepseq
     , destiny-gear-optimizer
@@ -79,7 +77,9 @@ executable destiny-gear-optimizer-exe
     , monad-parallel
     , mtl
     , stm
+    , store
     , ttrie
+    , unordered-containers
     , vector
     , vector-instances
   default-language: Haskell2010
@@ -91,13 +91,11 @@ test-suite destiny-gear-optimizer-test
       Paths_destiny_gear_optimizer
   hs-source-dirs:
       test
-  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds
+  default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds ScopedTypeVariables
   ghc-options: -O2 -funbox-strict-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , bytestring
-    , cereal
-    , cereal-vector
     , containers
     , deepseq
     , destiny-gear-optimizer
@@ -109,7 +107,9 @@ test-suite destiny-gear-optimizer-test
     , monad-parallel
     , mtl
     , stm
+    , store
     , ttrie
+    , unordered-containers
     , vector
     , vector-instances
   default-language: Haskell2010

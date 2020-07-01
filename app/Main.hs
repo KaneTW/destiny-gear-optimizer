@@ -4,14 +4,17 @@ module Main where
 import Control.DeepSeq
 
 import Control.Monad
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict as State
 
 import qualified Data.ByteString as BL
 import qualified Data.Map.Strict as M
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 
-import Data.Serialize
+import Data.Store
+
+import Data.Word
 
 import Destiny.Drops
 import Destiny.Types
@@ -21,6 +24,8 @@ import System.Directory
 
 import Text.Read
 import Text.Printf
+
+import Debug.Trace
 
 cands :: Int -> Int -> [[Int]]
 cands n 0 = [[]]
@@ -35,8 +40,8 @@ cands n k = do
 generateMain :: IO ()
 generateMain = do
   let acts = mkInitialActions defaultActions
-  s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VU.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) M.empty
-  BL.writeFile "states.out" $ encode s
+  s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VU.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) mempty
+  BL.writeFile "states.out" $ encode $ HM.toList s
 
 main :: IO ()
 main = runInputT defaultSettings (prepare >>= loopOuter)
@@ -59,18 +64,15 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
             outputStrLn "Generating... this will take a long while"
             liftIO generateMain
             processInput "states.out"
-          Just "2" -> return M.empty
+          Just "2" -> return mempty
           Just "3" -> waitForFilename >>= processInput
           _ -> outputStrLn "Invalid input." >> prepare
       
 
       return states
 
-    processInput fn = do
-      result <- decode <$!!> liftIO (BL.readFile fn)
-      case result of
-        Left err -> error err
-        Right x -> return x
+    processInput :: FilePath -> InputT IO MDPState
+    processInput fn = liftIO $  BL.readFile fn >>= decodeIO
 
     loopOuter :: MDPState -> InputT IO ()
     loopOuter states = do
