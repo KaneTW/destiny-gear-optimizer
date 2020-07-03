@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fa96833fce3c319d15d7352562c3018853ba245d8cf54113c6a996e5af2e8935
+-- hash: 1ecace480d613399894a7b9f2ba24b386e482990bad4c4a263e396b26780a08a
 
 name:           destiny-gear-optimizer
 version:        0.1.0.0
@@ -36,8 +36,10 @@ library
   default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds ScopedTypeVariables
   ghc-options: -O2 -funbox-strict-fields
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , bytestring
+    , concurrent-hashtable
     , containers
     , deepseq
     , directory
@@ -64,10 +66,12 @@ executable destiny-gear-optimizer-exe
   hs-source-dirs:
       app
   default-extensions: AllowAmbiguousTypes TypeInType GADTs FlexibleContexts TypeApplications UndecidableInstances GeneralizedNewtypeDeriving NoMonoLocalBinds ScopedTypeVariables
-  ghc-options: -O2 -funbox-strict-fields -rtsopts
+  ghc-options: -O2 -funbox-strict-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      async
+    , base >=4.7 && <5
     , bytestring
+    , concurrent-hashtable
     , containers
     , deepseq
     , destiny-gear-optimizer

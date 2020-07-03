@@ -21,9 +21,8 @@ import Data.Vector.Instances
 import Data.Store
 import Control.DeepSeq
 
+import qualified Data.HashTable as HT
 
-
-import qualified Control.Concurrent.STM.Map as SM
 
 data Slot 
   = Kinetic | Energy | Power
@@ -75,4 +74,4 @@ data StateTransition = StateTransition
   } deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Hashable, Store, NFData)
 
-type MDPState = M.Map StateEntry StateTransition
+type MDPState = HT.HashTable StateEntry StateTransition

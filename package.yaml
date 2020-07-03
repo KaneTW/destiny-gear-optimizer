@@ -39,6 +39,8 @@ dependencies:
 - store
 - primitive
 - lzma
+- concurrent-hashtable
+- async
 
 default-extensions:
 - AllowAmbiguousTypes
@@ -63,7 +65,9 @@ executables:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -threaded
     - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - destiny-gear-optimizer
 

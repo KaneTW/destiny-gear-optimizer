@@ -45,6 +45,7 @@ extra-deps:
 - store-core-0.4.4.2@sha256:11403cad88cf4f3675d49baf76cb5dd56363e786c7e25ef00fa57296af29a7b2,1444
 - th-utilities-0.2.3.1@sha256:40ebb0bc9569b4ff5c3be93c58a1e2a35e308a7e3effc73f6b324980f53f73fc,1869
 - lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
+- concurrent-hashtable-0.1.8@sha256:c9ddedc2904e81655e9d50736d3e038239536980833358fc87f576903c120f55,2648
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
