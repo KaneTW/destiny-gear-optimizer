@@ -5,7 +5,7 @@ import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad
 import qualified Control.Monad.Parallel as MP
-import Control.Monad.Reader
+import Control.Monad.State.Strict
 import Data.Function
 import Data.Generics.Product
 import Data.Word
@@ -17,8 +17,6 @@ import qualified Data.Vector.Primitive as VP
 import qualified Data.Foldable as F
 import Debug.Trace
 
-import Control.Monad.ST
-import qualified Data.HashTable as HT
 
 import Destiny.Types
 
@@ -71,10 +69,10 @@ defaultActions = V.fromList
   [ Activity { powerGain = 1, names = ["Hawthorne Weekly", "Vanguard", "Crucible", "Gambit"], pdf = defaultPdf }
   , Activity { powerGain = 2, names = ["Master NH", "100k", "Seasonal"], pdf = defaultPdf }
   , Activity { powerGain = 2, names = ["Pit Final", "Prophecy Final"], pdf = armorPdf }
-  , Activity { powerGain = 2, names = ["Raid 1", "Raid 1 Challenge"], pdf = raid1Pdf }
-  , Activity { powerGain = 2, names = ["Raid 2", "Raid 2 Challenge"], pdf = raid2Pdf }
+  , Activity { powerGain = 2, names = ["Raid 1"], pdf = raid1Pdf }
+  , Activity { powerGain = 2, names = ["Raid 2"], pdf = raid2Pdf }
   , Activity { powerGain = 2, names = ["Raid 3", "Raid 3 Challenge"], pdf = raid3Pdf }
-  , Activity { powerGain = 2, names = ["Raid 4", "Raid 4 Challenge"], pdf = raid4Pdf }
+  , Activity { powerGain = 2, names = ["Raid 4"], pdf = raid4Pdf }
   ]
   where
     defaultPdf = M.fromList
@@ -87,10 +85,8 @@ defaultActions = V.fromList
     raid1Pdf = M.fromList [ (Kinetic, 1/3), (Energy, 1/3), (Leg, 1/3) ]
     raid2Pdf = M.fromList [ (Energy, 1/2), (Glove, 1/2) ]
     raid3Pdf = M.fromList [ (Kinetic, 1/3), (Energy, 1/3), (Chest, 1/3) ]
-    raid4Pdf = M.fromList [ (Energy, 1/3), (Head, 1/3), (ClassItem, 1/3) ]
+    raid4Pdf = M.fromList [ (Kinetic, 1/3), (Head, 1/3), (ClassItem, 1/3) ]
 
-actionSize :: Actions -> Int
-actionSize = foldr (\act n -> n * (length (names act) + 1)) 1
 
 mkInitialActions :: Actions -> VP.Vector Word8
 mkInitialActions = VP.convert . fmap (fromIntegral.length.names) 
@@ -101,17 +97,16 @@ mkState slots actions = StateEntry
   , availableActions = mkInitialActions actions
   }
 
-selectAction :: StateEntry -> ReaderT MDPState IO (Maybe StateTransition)
+selectAction :: Monad m => StateEntry -> StateT MDPState m (Maybe StateTransition)
 selectAction se | VP.sum actionArity == 0 = return Nothing
                 | otherwise = do
-  map <- ask
-  oldEntry <- lift $ HT.lookup map se
+  oldEntry <- M.lookup se <$> get
 
   case oldEntry of
     Just x -> return (Just x)
     _ -> do
       choice <- V.maximumBy (compare `on` transitionScore) <$> V.imapM onAction (VP.convert actionArity)
-      lift $ HT.insert map se choice
+      modify' (M.insert se choice)
       return (Just choice)
 
   where
@@ -157,34 +152,11 @@ updateStateEntry se slot idx = (StateEntry { availableActions = newActionState, 
     mean = (VP.sum newMsd') `div` 8
     newMsd = VP.map (\n -> fromIntegral $ max (0 :: Int) (fromIntegral n - fromIntegral mean)) newMsd'
 
+        
 
--- Initialization stuff
-
-
-
-compositions :: Int -> Int -> [[Int]]
-compositions n 0 = [[]]
-compositions n k = do
-  tails <- compositions n (k-1)
-  x <- [0..n - sum tails]
-  let result = x : tails
-  guard (sum result < n)
-  return result
+        
 
 
-rankedActions :: VP.Vector Word8 -> [[VP.Vector Word8]]
-rankedActions xs = go 1
-  where
-    xs' = map fromIntegral $ VP.toList xs
-    len = VP.length xs 
-    go n 
-      | sum xs' == n = [[xs]]
-      | otherwise = mkRank n : go (n+1) 
-    
-    mkRank n = map (VP.fromList . map fromIntegral) $ filter (and . zipWith (>=) xs') $ filter ((==n) . sum) $ compositions (n+1) len
 
-      
-buildStates :: VP.Vector Word8 -> ReaderT MDPState IO ()
-buildStates acts = mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VP.fromList (map fromIntegral m) , availableActions = acts})) (compositions 8 8)
 
 

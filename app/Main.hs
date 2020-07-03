@@ -6,7 +6,7 @@ import Codec.Compression.Lzma
 import Control.DeepSeq
 
 import Control.Monad
-import Control.Monad.Reader
+import Control.Monad.State.Strict as State
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
@@ -14,12 +14,6 @@ import qualified Data.Map.Strict as M
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import qualified Data.Vector.Primitive as VP
-
-import Control.Concurrent
-import Control.Concurrent.Async
-import qualified Control.Monad.Parallel as MP
-import Control.Concurrent.STM
-import qualified Data.HashTable as HT
 
 import Data.Store
 
@@ -34,31 +28,24 @@ import System.Directory
 import Text.Read
 import Text.Printf
 
-buildAllStatesParallel :: InputT IO MDPState
-buildAllStatesParallel = do
-  ht <- liftIO $ HT.newWithDefaults (6435 * actionSize defaultActions)
-  let ranks = rankedActions $ mkInitialActions defaultActions
-  let total = sum (map length ranks)
-  progress <- liftIO $ newTVarIO 0
-  forM_ ranks $ \acts -> do
-    -- acts are bottom-up from the same rank
-    liftIO $ forConcurrently_  acts (\act -> forkIO $ runReaderT (buildStates act) ht)
-    previousProgress <- liftIO $ readTVarIO progress
-    let newProgress = previousProgress + length acts
-    outputStrLn $ printf "Progress: %.2f%%" ( (100 :: Double) * (fromIntegral newProgress) / (fromIntegral total))
-    liftIO $ atomically $ writeTVar progress newProgress
-  size <- liftIO $ HT.readSizeIO ht
-  load <- liftIO $ HT.readLoad ht
-  outputStrLn $ printf "Size: %d, Load: %d" size load
-  return ht
 
-generateMain :: InputT IO ()
+cands :: Int -> Int -> [[Int]]
+cands n 0 = [[]]
+cands n k = do
+  tails <- cands n (k-1)
+  x <- [0..n - sum tails]
+  let result = x : tails
+  guard (sum result < n)
+  return result
+
+
+generateMain :: IO ()
 generateMain = do
-  mdpState <- buildAllStatesParallel
-  error "abort"
-  encoded <- liftIO $ encode <$> HT.readAssocsIO  mdpState
-  --let compressed = compressWith defaultCompressParams { compressLevel = CompressionLevel9, compressIntegrityCheck = IntegrityCheckSha256 } (BL.fromStrict encoded)
-  liftIO $ BS.writeFile "states.out" $ encoded
+  let acts = mkInitialActions defaultActions
+  s <- execStateT (mapM_ (\m -> selectAction (StateEntry { meanSlotDeviation = VP.fromList (map fromIntegral m) , availableActions = acts}) >> liftIO (print m)) (cands 8 8)) mempty
+  let encoded = encode s
+  let compressed = compressWith defaultCompressParams { compressLevel = CompressionLevel9, compressIntegrityCheck = IntegrityCheckSha256 } (BL.fromStrict encoded)
+  BL.writeFile "states.out" $ compressed
 
 main :: IO ()
 main = runInputT defaultSettings (prepare >>= loopOuter)
@@ -79,9 +66,9 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
         case input of
           Just "1" -> do 
             outputStrLn "Generating... this will take a long while"
-            generateMain
+            liftIO generateMain
             processInput "states.out"
-          Just "2" -> liftIO $ HT.newWithDefaults 1
+          Just "2" -> return mempty
           Just "3" -> waitForFilename >>= processInput
           _ -> outputStrLn "Invalid input." >> prepare
       
@@ -89,8 +76,7 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
       return states
 
     processInput :: FilePath -> InputT IO MDPState
-    --processInput fn = liftIO $ BL.readFile fn >>= (decodeIO . BL.toStrict . decompress) >>= error "welp"
-    processInput fn = error "welp"
+    processInput fn = liftIO $ BL.readFile fn >>= (decodeIO . BL.toStrict . decompress)
 
     loopOuter :: MDPState -> InputT IO ()
     loopOuter states = do
@@ -105,7 +91,7 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
     loop :: (MDPState, StateEntry, Double) -> InputT IO ()
     loop (states, se, cg) = do
       outputStrLn $ printf "Current gain: %.2f" cg
-      result <- liftIO $ runReaderT (selectAction se) states
+      (result, s) <- runStateT (selectAction se) states
       case result of
         Nothing -> outputStrLn "Nothing can be improved anymore."
         Just (StateTransition actIdx' gain) -> do 
@@ -118,7 +104,7 @@ main = runInputT defaultSettings (prepare >>= loopOuter)
           slot <- queryUpdate (M.keys $ pdf recAction)
           let (newSe, reward) = updateStateEntry se slot actIdx
           
-          loop (states, newSe, cg + reward)
+          loop (s, newSe, cg + reward)
 
     querySlot slot = do
       line <- getInputLine $ show slot ++ ": "
